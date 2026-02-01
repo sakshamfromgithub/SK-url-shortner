@@ -17,6 +17,7 @@ It converts long URLs into short, shareable links and redirects users instantly.
 
 ## 🌍 Live Demo
 After deployment, short links work like this:
+https://skurl.netlify.app/?c=abc123
 
 
 Opening the link will automatically redirect to the original URL.
