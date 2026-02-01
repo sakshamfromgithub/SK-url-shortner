@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SK URL Shortner</title>
+    <style>
+        :root {
+            --bg: #0b1220;
+            --card: #101b33;
+            --text: #eaf0ff;
+            --muted: #a9b7dd;
+            --line: rgba(255, 255, 255, .12);
+            --brand: #5b8cff;
+            --ok: #39d98a;
+            --bad: #ff4d6d;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(900px 500px at 15% 10%, rgba(91, 140, 255, .25), transparent 55%),
+                radial-gradient(700px 400px at 80% 20%, rgba(57, 217, 138, .18), transparent 55%),
+                radial-gradient(900px 500px at 50% 120%, rgba(255, 77, 109, .12), transparent 60%),
+                var(--bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 22px;
+        }
+
+        .wrap {
+            width: min(920px, 100%);
+            display: grid;
+            gap: 16px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 16px;
+            border: 1px solid var(--line);
+            background: rgba(16, 27, 51, .75);
+            backdrop-filter: blur(10px);
+            border-radius: 18px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            letter-spacing: .3px;
+        }
+
+        .dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: conic-gradient(from 180deg, var(--brand), var(--ok), var(--bad), var(--brand));
+            box-shadow: 0 0 18px rgba(91, 140, 255, .45);
+        }
+
+        .hint {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.25;
+            text-align: right;
+        }
+
+        .card {
+            border: 1px solid var(--line);
+            background: rgba(16, 27, 51, .75);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 18px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.2fr .8fr;
+            gap: 14px;
+        }
+
+        @media (max-width: 760px) {
+            .grid {
+                grid-template-columns: 1fr
+            }
+
+            .hint {
+                text-align: left
+            }
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 12px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: rgba(11, 18, 32, .6);
+            color: var(--text);
+            outline: none;
+            transition: .2s;
+        }
+
+        input:focus {
+            border-color: rgba(91, 140, 255, .6);
+            box-shadow: 0 0 0 4px rgba(91, 140, 255, .16);
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 14px;
+            padding: 12px 14px;
+            color: var(--text);
+            font-weight: 700;
+            background: linear-gradient(135deg, rgba(91, 140, 255, .95), rgba(91, 140, 255, .55));
+            box-shadow: 0 12px 28px rgba(91, 140, 255, .22);
+            transition: transform .15s, filter .15s, box-shadow .15s;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.08);
+            box-shadow: 0 16px 34px rgba(91, 140, 255, .28);
+        }
+
+        button:active {
+            transform: translateY(0px) scale(.99);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--line);
+            box-shadow: none;
+            font-weight: 700;
+        }
+
+        .btn-ghost:hover {
+            box-shadow: 0 10px 24px rgba(0, 0, 0, .18);
+            filter: none;
+        }
+
+        .result {
+            margin-top: 14px;
+            border: 1px dashed rgba(255, 255, 255, .22);
+            border-radius: 16px;
+            padding: 12px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 12.5px;
+            width: fit-content;
+        }
+
+        .ok {
+            color: var(--ok);
+        }
+
+        .bad {
+            color: var(--bad);
+        }
+
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        .links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .tiny {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+
+        .list {
+            margin-top: 10px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .item {
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 12px;
+            display: grid;
+            gap: 8px;
+            background: rgba(11, 18, 32, .45);
+        }
+
+        .itemTop {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .smallBtn {
+            padding: 9px 10px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .footer {
+            border-top: 1px solid var(--line);
+            padding: 5px;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            color: var(--muted);
+            backdrop-filter: blur(10px);
+            background: rgba(11, 18, 32, .65);
+
+
+        }
+
+        .footer a {
+            color: var(--muted);
+            /* text-decoration: none; */
+            margin: 0 6px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="topbar">
+            <div class="brand"><span class="dot"></span> SK URL Shortner</div>
+            <div class="hint">
+                convert long urls into Short urls
+            </div>
+        </div>
+
+        <div class="card grid">
+            <div>
+                <label>Long URL</label>
+                <input id="longUrl" placeholder="https://example.com/very/long/link?ref=sk" />
+            </div>
+            <div>
+                <label>Custom Code (optional)</label>
+                <input id="customCode" class="mono" placeholder="sk2026" />
+            </div>
+
+            <div class="row" style="grid-column: 1 / -1;">
+                <button id="btnShorten">Shorten URL</button>
+                <button id="btnClear" class="btn-ghost">Clear</button>
+                <button id="btnExport" class="btn-ghost">Export Data</button>
+                <button id="btnResetAll" class="btn-ghost">Reset All</button>
+            </div>
+
+            <div id="result" class="result" style="grid-column: 1 / -1; display:none;"></div>
+
+            <div style="grid-column: 1 / -1;">
+                <div class="pill">Saved locally in your browser (localStorage) 🔒</div>
+                <div class="tiny">
+                    <br>
+                    create your first shortlink now! <br>
+                </div>
+
+                <div class="list" id="list"></div>
+            </div>
+        </div>
+    </div>
+    <div class="footer">© 2026 | SK Url Shortner <a href="privacy.html">Privacy Policy</a> <a
+            href="terms.html">terms</a> <a href="Contactus.html">Contact us</a></div>
+
+    <script>
+        // ---------------------------
+        // Redirect mode: /?c=CODE
+        // ---------------------------
+        const params = new URLSearchParams(location.search);
+        const codeFromUrl = params.get("c");
+        const STORE_KEY = "sk_url_shortner_data_v1";
+
+        function getData() {
+            try { return JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); }
+            catch { return {}; }
+        }
+        function setData(obj) {
+            localStorage.setItem(STORE_KEY, JSON.stringify(obj));
+        }
+
+        if (codeFromUrl) {
+            const data = getData();
+            const target = data[codeFromUrl];
+            if (target) {
+                // Safe-ish redirect (client side)
+                location.replace(target);
+            } else {
+                // If code not found, continue and show UI + message
+                history.replaceState({}, "", location.pathname);
+            }
+        }
+
+        // ---------------------------
+        // Utilities
+        // ---------------------------
+        function normalizeUrl(url) {
+            url = (url || "").trim();
+            if (!url) return "";
+            // if user entered "google.com", add https://
+            if (!/^https?:\/\//i.test(url)) {
+                url = "https://" + url;
+            }
+            return url;
+        }
+
+        function isValidUrl(url) {
+            try {
+                const u = new URL(url);
+                return u.protocol === "http:" || u.protocol === "https:";
+            } catch {
+                return false;
+            }
+        }
+
+        function randCode(len = 6) {
+            const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
+            let out = "";
+            crypto.getRandomValues(new Uint32Array(len)).forEach(n => {
+                out += chars[n % chars.length];
+            });
+            return out;
+        }
+
+        function baseLink(code) {
+            return location.origin + location.pathname.replace(/\/index\.html$/i, "/") + "?c=" + encodeURIComponent(code);
+        }
+
+        // ---------------------------
+        // UI refs
+        // ---------------------------
+        const longUrlEl = document.getElementById("longUrl");
+        const customCodeEl = document.getElementById("customCode");
+        const resultEl = document.getElementById("result");
+        const listEl = document.getElementById("list");
+
+        document.getElementById("btnShorten").addEventListener("click", shorten);
+        document.getElementById("btnClear").addEventListener("click", () => {
+            longUrlEl.value = "";
+            customCodeEl.value = "";
+            resultEl.style.display = "none";
+            longUrlEl.focus();
+        });
+
+        document.getElementById("btnResetAll").addEventListener("click", () => {
+            if (confirm("Reset ALL saved short links?")) {
+                localStorage.removeItem(STORE_KEY);
+                renderList();
+                resultEl.style.display = "none";
+            }
+        });
+
+        document.getElementById("btnExport").addEventListener("click", () => {
+            const data = getData();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "sk-url-shortner-data.json";
+            a.click();
+            URL.revokeObjectURL(a.href);
+        });
+
+        function showResult(html) {
+            resultEl.innerHTML = html;
+            resultEl.style.display = "grid";
+        }
+
+        async function copyText(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch {
+                // fallback
+                const t = document.createElement("textarea");
+                t.value = text;
+                document.body.appendChild(t);
+                t.select();
+                const ok = document.execCommand("copy");
+                document.body.removeChild(t);
+                return ok;
+            }
+        }
+
+        // ---------------------------
+        // Main
+        // ---------------------------
+        function shorten() {
+            const rawLong = longUrlEl.value;
+            const longUrl = normalizeUrl(rawLong);
+            const custom = (customCodeEl.value || "").trim();
+
+            if (!longUrl) {
+                showResult(`<div class="pill bad">✖ Please enter a URL</div>`);
+                return;
+            }
+            if (!isValidUrl(longUrl)) {
+                showResult(`<div class="pill bad">✖ Invalid URL. Example: https://google.com</div>`);
+                return;
+            }
+
+            const data = getData();
+
+            let code = custom || randCode(7);
+            // sanitize code
+            code = code.replace(/\s+/g, "").replace(/[^a-zA-Z0-9_-]/g, "");
+            if (!code) {
+                showResult(`<div class="pill bad">✖ Custom code invalid</div>`);
+                return;
+            }
+
+            if (data[code] && data[code] !== longUrl) {
+                showResult(`<div class="pill bad">✖ Code already used. Try another.</div>`);
+                return;
+            }
+
+            // If random code already exists, retry a few times
+            if (!custom) {
+                let tries = 0;
+                while (data[code] && tries < 6) {
+                    code = randCode(7);
+                    tries++;
+                }
+            }
+
+            data[code] = longUrl;
+            setData(data);
+
+            const shortUrl = baseLink(code);
+
+            showResult(`
+        <div class="pill ok">✔ Short link created</div>
+        <div class="mono" style="font-size:14px; word-break:break-all;">${shortUrl}</div>
+        <div class="links">
+          <button class="smallBtn" id="copyBtn">Copy</button>
+          <button class="smallBtn btn-ghost" id="openBtn">Open</button>
+          <button class="smallBtn btn-ghost" id="delBtn">Delete</button>
+        </div>
+        <div class="tiny">
+          Code: <span class="mono">${code}</span><br/>
+          Redirects to: <span class="mono" style="word-break:break-all;">${longUrl}</span>
+        </div>
+      `);
+
+            document.getElementById("copyBtn").addEventListener("click", async () => {
+                const ok = await copyText(shortUrl);
+                showResult(resultEl.innerHTML + `<div class="pill ${ok ? "ok" : "bad"}">${ok ? "✔ Copied" : "✖ Copy blocked (try manual)"} </div>`);
+            });
+            document.getElementById("openBtn").addEventListener("click", () => window.open(shortUrl, "_blank"));
+            document.getElementById("delBtn").addEventListener("click", () => {
+                const d = getData();
+                delete d[code];
+                setData(d);
+                resultEl.style.display = "none";
+                renderList();
+            });
+
+            renderList();
+        }
+
+        function renderList() {
+            const data = getData();
+            const entries = Object.entries(data);
+
+            if (entries.length === 0) {
+                listEl.innerHTML = `<div class="tiny">No links yet. Create your first short link above ✨</div>`;
+                return;
+            }
+
+            // newest first by insertion order not guaranteed in JSON, but works in most modern engines
+            listEl.innerHTML = entries.reverse().map(([code, longUrl]) => {
+                const shortUrl = baseLink(code);
+                return `
+          <div class="item">
+            <div class="itemTop">
+              <div>
+                <div class="pill"><span class="mono">${code}</span></div>
+              </div>
+              <div class="actions">
+                <button class="smallBtn" data-copy="${code}">Copy</button>
+                <button class="smallBtn btn-ghost" data-open="${code}">Open</button>
+                <button class="smallBtn btn-ghost" data-del="${code}">Delete</button>
+              </div>
+            </div>
+            <div class="mono" style="font-size:13px; word-break:break-all;">${shortUrl}</div>
+            <div class="tiny" style="word-break:break-all;">${longUrl}</div>
+          </div>
+        `;
+            }).join("");
+
+            listEl.querySelectorAll("[data-copy]").forEach(btn => {
+                btn.addEventListener("click", async () => {
+                    const code = btn.getAttribute("data-copy");
+                    const ok = await copyText(baseLink(code));
+                    btn.textContent = ok ? "Copied" : "Copy";
+                    setTimeout(() => btn.textContent = "Copy", 900);
+                });
+            });
+
+            listEl.querySelectorAll("[data-open]").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const code = btn.getAttribute("data-open");
+                    window.open(baseLink(code), "_blank");
+                });
+            });
+
+            listEl.querySelectorAll("[data-del]").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const code = btn.getAttribute("data-del");
+                    const data = getData();
+                    delete data[code];
+                    setData(data);
+                    renderList();
+                });
+            });
+        }
+
+        renderList();
+    </script>
+</body>
+
+</html>
